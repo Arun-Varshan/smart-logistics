@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body style="background: #030712; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+  <div id="auth-card" style="width: 100%; max-width: 400px; padding: 40px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+    <div style="text-align: center; margin-bottom: 32px;">
+      <h2 style="color: #fff; margin-bottom: 8px; font-size: 24px;">Welcome back</h2>
+      <p style="color: #64748b; font-size: 14px;">Enter your credentials to access the ERP</p>
+    </div>
+    
+    <div class="auth-field">
+      <label style="color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Email Address</label>
+      <input type="email" id="login-email" placeholder="name@company.com" style="width: 100%; padding: 12px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; color: #fff; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#334155'">
+    </div>
+    
+    <div class="auth-field" style="margin-top: 20px;">
+      <label style="color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" style="width: 100%; padding: 12px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; color: #fff; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#334155'">
+    </div>
+    
+    <button id="auth-login-btn" class="btn btn-primary" style="width: 100%; margin-top: 32px; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;">Sign In</button>
+    
+    <div style="margin-top: 24px; position: relative; text-align: center;">
+      <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #334155; z-index: 1;"></div>
+      <span style="position: relative; z-index: 2; background: #0f172a; padding: 0 12px; color: #64748b; font-size: 12px;">OR</span>
+    </div>
+    
+    <button class="btn btn-secondary" style="width: 100%; margin-top: 24px; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #fff; border: 1px solid #334155; cursor: pointer;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18">
+      Continue with Google
+    </button>
+    
+    <div id="auth-error" style="margin-top: 20px; color: #ef4444; font-size: 13px; text-align: center; min-height: 20px;"></div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.getElementById('auth-login-btn').onclick = async () => {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('auth-error');
+      errorEl.textContent = "";
+      
+      try {
+        if (typeof API_URL === 'undefined') {
+            throw new ReferenceError("API_URL is not defined. Please ensure script.js loaded correctly and try a hard refresh (Ctrl+F5).");
+        }
+        console.log("Attempting login at:", `${API_URL}/auth/login`);
+        const res = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          console.error("Login rejected by server:", data);
+          errorEl.textContent = data.error || "Login failed";
+          return;
+        }
+        
+        localStorage.setItem('wiztric_access_token', data.access_token);
+        localStorage.setItem('wiztric_role', data.role);
+        localStorage.setItem('wiztric_tenant_id', data.tenant_id);
+        
+        // Resolve redirect path based on role
+        const role_paths = {
+            "HUB_MANAGER": "/manager/dashboard.html",
+            "QOS": "/qos/dashboard.html",
+            "ROBOTICS": "/robots/dashboard.html",
+            "DELIVERY": "/delivery/dashboard.html",
+            "ADMIN": "/admin/dashboard.html",
+            "FINANCE": "/finance/dashboard.html"
+        };
+        const redirect = role_paths[data.role] || "/index.html";
+        window.location.href = redirect;
+      } catch (e) {
+        console.error("Fetch error details:", e);
+        errorEl.textContent = "Connection error. Is the backend running? Check console (F12) for details.";
+      }
+    };
+  </script>
+</body>
+</html>

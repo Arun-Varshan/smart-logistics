@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Your Parcel · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .track-container { max-width: 600px; margin: 60px auto; padding: 20px; }
+    .timeline { position: relative; margin-top: 40px; padding-left: 40px; border-left: 2px solid #E5E7EB; }
+    .timeline-item { position: relative; margin-bottom: 30px; }
+    .timeline-item::before { content: ""; position: absolute; left: -49px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: #E5E7EB; border: 4px solid #FFF; }
+    .timeline-item.active::before { background: #2563EB; }
+    .timeline-item.completed::before { background: #16A34A; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+  </style>
+</head>
+<body style="background: #030712; color: #f8fafc; font-family: 'Inter', sans-serif;">
+  <div class="track-container">
+    <div class="card" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <h2 style="color: #fff; margin-bottom: 8px; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">Track Your Shipment</h2>
+        <p style="color: #94a3b8; font-size: 15px;">Enter your tracking ID for real-time logistics intelligence</p>
+      </div>
+
+      <div class="card-body">
+        <div style="display:flex; gap:12px; background: #1e293b; padding: 6px; border-radius: 16px; border: 1px solid #334155;">
+          <input type="text" id="parcelIdInput" placeholder="Enter Tracking ID (e.g. P-12345)" 
+                 style="flex:1; background: transparent; border: none; padding: 12px 16px; color: #fff; outline: none; font-size: 15px;">
+          <button class="btn btn-primary" id="trackBtn" style="border-radius: 12px; padding: 0 24px; font-weight: 600;">Track Now</button>
+        </div>
+
+        <div id="trackResult" style="display:none; margin-top:40px; animation: slideUp 0.4s ease-out;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #334155;">
+            <div>
+              <div style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Shipment ID</div>
+              <div style="font-size: 24px; font-weight: 800; color: #fff;" id="resId"></div>
+            </div>
+            <div style="text-align: right;">
+              <div style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Destination</div>
+              <div id="resDestination" style="color: #4de1c9; font-size: 18px; font-weight: 700;"></div>
+            </div>
+          </div>
+          
+          <div class="timeline" id="timeline" style="margin-left: 10px;">
+            <div class="timeline-item" id="step-RECEIVED_AT_HUB">
+              <div style="font-weight:700; color: #f1f5f9; font-size: 16px;">Received at Central Hub</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top: 2px;">Inbound manifest verified and registered</div>
+            </div>
+            <div class="timeline-item" id="step-INSPECTION">
+              <div style="font-weight:700; color: #f1f5f9; font-size: 16px;">AI Quality Inspection</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top: 2px;">Automated damage detection and QOS verification</div>
+            </div>
+            <div class="timeline-item" id="step-IN_ZONE">
+              <div style="font-weight:700; color: #f1f5f9; font-size: 16px;">Robotic Zone Allocation</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top: 2px;">Sorted by autonomous mobile robots (AMR)</div>
+            </div>
+            <div class="timeline-item" id="step-OUT_FOR_DELIVERY">
+              <div style="font-weight:700; color: #f1f5f9; font-size: 16px;">Dispatched for Last-Mile</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top: 2px;">Vehicle dispatched. Estimated Arrival: <span id="resEta" style="color: #3b82f6; font-weight: 700;"></span></div>
+            </div>
+            <div class="timeline-item" id="step-DELIVERED">
+              <div style="font-weight:700; color: #f1f5f9; font-size: 16px;">Delivered</div>
+              <div style="font-size:13px; color:#94a3b8; margin-top: 2px;">Successfully reached destination godown</div>
+            </div>
+          </div>
+          
+          <div id="resRoute" style="margin-top:20px; padding:15px; background:#F1F5F9; border-radius:8px; font-family:monospace; font-size:12px; display:none;">
+            <strong>Live Route:</strong><br/>
+            <span id="resRouteText"></span>
+          </div>
+
+          <!-- New Features: Payment & Invoices (REMOVED as per request) -->
+          <div id="customerActions" style="margin-top:24px; display:none; border-top:1px solid rgba(255,255,255,0.1); padding-top:32px;">
+            <div style="margin-top:32px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Live Regional Transit</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                        <span style="font-size: 12px; color: #22c55e; font-weight: 600;">Live Feed Active</span>
+                    </div>
+                </div>
+                <div style="height:300px; background:#0c1324; border-radius:20px; overflow:hidden; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                    <canvas id="godownMap" style="width:100%; height:100%;"></canvas>
+                </div>
+            </div>
+          </div>
+        </div>
+        <div id="trackError" style="color:#DC2626; margin-top:20px; display:none;">Parcel not found. Please check ID.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Note: script.js already defines API_URL and other helpers
+    
+    // Subscribe to system events to notify customer about delivery/payment
+    const _custEvents = new EventSource(`${API_URL}/api/stream/events`);
+    _custEvents.onmessage = (e) => {
+      try {
+        const payload = JSON.parse(e.data);
+        const currentId = document.getElementById("parcelIdInput")?.value || "";
+        if (payload.type === "PARCEL_DELIVERED" && payload.data.parcel_id === currentId) {
+          alert("Your parcel has arrived at destination. Thank you!");
+        }
+        if (payload.type === "FINANCE_PAYMENT" && payload.data.parcel_id === currentId) {
+          const paymentStatus = document.getElementById("paymentStatus");
+          if (paymentStatus) paymentStatus.textContent = `Paid: ₹${Number(payload.data.amount).toLocaleString()}`;
+        }
+      } catch (err) {}
+    };
+
+    async function loadTracking() {
+        const currentParcelId = document.getElementById("parcelIdInput").value.trim();
+        if (!currentParcelId) return;
+        try {
+            const res = await fetch(`${API_URL}/api/customer/track?parcel_id=${currentParcelId}`);
+            if (!res.ok) {
+                document.getElementById('trackError').style.display = 'block';
+                document.getElementById('trackResult').style.display = 'none';
+                return;
+            }
+            const data = await res.json();
+            
+            // Simplified display for this exercise
+            document.getElementById('trackError').style.display = 'none';
+            document.getElementById('trackResult').style.display = 'block';
+            document.getElementById('customerActions').style.display = 'block';
+            
+            // Update basic info
+            document.getElementById("resId").textContent = "Parcel #" + data.id;
+            document.getElementById("resDestination").textContent = "Destination: " + data.destination;
+            document.getElementById("resEta").textContent = data.eta;
+
+            let payBtn = '';
+            if (data.amount_to_pay > 0) {
+                // Inject payment button dynamically if needed, or toggle existing
+                document.getElementById("paymentStatus").textContent = "Pending: ₹" + data.amount_to_pay.toLocaleString();
+                // For the purpose of this replacement, we'll assume we are switching to the new structure partially
+            }
+        } catch (e) {
+            document.getElementById('trackError').style.display = 'block';
+        }
+    }
+
+    document.getElementById("trackBtn").onclick = loadTracking;
+
+    async function payNow(parcelId, amount) {
+        if (!confirm(`Confirm payment of ₹${amount}?`)) return;
+        
+        try {
+            const res = await fetch(`${API_URL}/api/finance/record_payment`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ parcel_id: parcelId, amount: amount, mode: 'ONLINE' })
+            });
+            
+            if (res.ok) {
+                alert("Payment Successful!");
+                loadTracking(); 
+            } else {
+                alert("Payment failed.");
+            }
+        } catch (e) {
+            alert("Payment error.");
+        }
+    }
+    // Bind payNow roughly to existing button for compatibility if needed
+    document.getElementById("payNowBtn").onclick = () => {
+         const id = document.getElementById("parcelIdInput").value.trim();
+         payNow(id, window._currentParcelAmount || 450);
+    };
+
+    document.getElementById("downloadInvoiceBtn").onclick = () => {
+        const id = document.getElementById("parcelIdInput").value.trim();
+        alert("Downloading Invoice for " + id + "...");
+        // In a real app, this would be a link to a PDF
+        window.open(`${API_URL}/api/reports/export?batch_id=all`, "_blank");
+    };
+  </script>
+</body>
+</html>

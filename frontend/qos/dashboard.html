@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QOS Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Quality & Safety (QOS)</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">QOS Dashboard</a>
+        <a class="sidebar-link" href="scanner.html">Damage Scanner (YOLO)</a>
+        <a class="sidebar-link" href="history.html">Scan History</a>
+        <a class="sidebar-link" href="analytics.html">Damage Analytics</a>
+        <a class="sidebar-link" href="reports.html">Zone Quality Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Quality & Safety Dashboard</h1>
+        <p>Real-time damage detection and risk monitoring</p>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Damaged Ratio</div><div id="qosDamageRatio" class="kpi-value">0%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Safe Parcels</div><div id="qosSafeCount" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Critical Damage</div><div id="qosCriticalCount" class="kpi-value" style="color:var(--danger);">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Risk Level</div><div class="kpi-value" style="color:var(--success);">LOW</div></div>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-title">Damage Severity Distribution</div>
+            <canvas id="qosSeverityBar" style="height:240px;"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Quality Incident Feed</div>
+            <div id="qosIncidents" class="logs" style="max-height: 240px; padding: 10px;">
+              <div style="color:var(--muted); text-align:center; padding:20px;">Monitoring real-time inspections...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Parcels Awaiting Inspection</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Parcel ID</div><div>Priority</div><div>Status</div>
+              </div>
+              <div id="qosAwaitingBody" class="table-body"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        initQosPage();
+        startSimulationStream();
+    });
+  </script>
+</body>
+</html>

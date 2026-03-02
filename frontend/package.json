@@ -1,0 +1,16 @@
+{
+  "name": "wiztric-technologies-smart-logistics-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Driven Smart Logistics Hub Automation ERP website",
+  "scripts": {
+    "dev": "npx http-server -p 5173 -c-1 .",
+    "dev:5174": "npx http-server -p 5174 -c-1 .",
+    "dev:5500": "npx http-server -p 5500 -c-1 .",
+    "start": "npm run dev",
+    "build": "echo \"Static build only\""
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

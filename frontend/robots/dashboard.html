@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robotics Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Robotics Supervisor</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">Robotics Dashboard</a>
+        <a class="sidebar-link" href="fleet.html">Robots in Hub</a>
+        <a class="sidebar-link" href="twin.html">Digital Twin View</a>
+        <a class="sidebar-link" href="assignment.html">Robot Assignment</a>
+        <a class="sidebar-link" href="health.html">Health & Maintenance</a>
+        <a class="sidebar-link" href="transport.html">Zone Transport Status</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div>
+            <h1>Robotics Fleet Overview</h1>
+            <p>Monitor real-time robot performance and utilization metrics</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Active Robots</div><div id="rbActive" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Idle / Standby</div><div id="rbIdle" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg. Utilization</div><div id="rbUtilPct" class="kpi-value">0%</div></div>
+          <div class="kpi-card"><div class="kpi-label">CO2 Saved (Est.)</div><div id="rbCO2" class="kpi-value" style="color:var(--success);">0kg</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Fleet Status Split</div>
+            <canvas id="robotPie" height="240"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Zone Capacity Monitor</div>
+            <div id="zoneCapacityList" style="display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; padding:8px;">
+                <!-- Dummy Zones -->
+                <div style="font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Zone A (General)</span><span style="color:var(--success);">24%</span></div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:24%; height:100%; background:var(--success);"></div></div>
+                </div>
+                <div style="font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Zone B (Fragile)</span><span style="color:var(--warning);">78%</span></div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:78%; height:100%; background:var(--warning);"></div></div>
+                </div>
+                <div style="font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Zone C (Heavy)</span><span style="color:var(--success);">12%</span></div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:12%; height:100%; background:var(--success);"></div></div>
+                </div>
+                <div style="font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Zone D (Medical)</span><span style="color:var(--danger);">92%</span></div>
+                    <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;"><div style="width:92%; height:100%; background:var(--danger);"></div></div>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-title">Active Mission Log</div>
+            <div id="rbActiveTable" class="table-body" style="max-height:300px; overflow-y:auto;">
+              <div style="padding:20px; color:var(--muted); text-align:center;">Robotics system standby.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        initRoboticsPage();
+        startSimulationStream();
+    });
+
+    function toggleRoboticsMode() {
+        const status = document.getElementById('autoModeStatus');
+        if (status.textContent === 'ACTIVE') {
+            status.textContent = 'MANUAL';
+            status.style.color = 'var(--warning)';
+        } else {
+            status.textContent = 'ACTIVE';
+            status.style.color = 'var(--success)';
+        }
+    }
+
+    function updateRobotSpeed(val) {
+        console.log("Updating fleet speed to:", val);
+    }
+
+    function recalibrateFleet() {
+        alert("Fleet recalibration sequence initiated...");
+    }
+
+    function emergencyStop() {
+        if(confirm("Are you sure you want to stop the entire robotics fleet?")) {
+            alert("EMERGENCY STOP SIGNAL SENT");
+        }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Management · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">System Administrator</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">System Overview</a>
+        <a class="sidebar-link active" href="users.html">User Management</a>
+        <a class="sidebar-link" href="logs.html">System Logs</a>
+        <a class="sidebar-link" href="settings.html">Global Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1>User Management</h1>
+      <section class="content-section">
+        <div class="panel">
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Email</div><div>Role</div><div>Last Login</div>
+            </div>
+            <div class="table-body">
+              <div class="table-row"><div>manager@logisticshub.com</div><div>HUB_MANAGER</div><div>Just now</div></div>
+              <div class="table-row"><div>qos@logisticshub.com</div><div>QOS</div><div>5m ago</div></div>
+              <div class="table-row"><div>robotics@logisticshub.com</div><div>ROBOTICS</div><div>12m ago</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', initApp);</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link active" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Inter-Department Notifications</h1>
+        <p>Real-time updates from QOS, Robotics, and Delivery teams</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-title">Operational Feed</div>
+            <div id="adNotifications" class="logs" style="max-height: 600px;"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="color:var(--danger);">Critical Risks & Bottlenecks</div>
+            <div id="adRiskAlerts" class="logs" style="max-height: 600px;"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+    });
+  </script>
+</body>
+</html>

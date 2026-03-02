@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Logistics Hub Automation ERP</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .landing-hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: radial-gradient(circle at top, #111832 0, #030712 100%);
+      color: #fff;
+      padding: 20px;
+    }
+    .landing-hero h1 {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      background: var(--brand-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .landing-hero p {
+      font-size: 1.5rem;
+      color: var(--muted);
+      max-width: 800px;
+      margin-bottom: 40px;
+    }
+    .btn-get-started {
+      font-size: 1.25rem;
+      padding: 16px 48px;
+      border-radius: 50px;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+    }
+    .btn-get-started:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(37, 99, 235, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="landing-hero">
+    <h1>Smart Logistics Hub Automation ERP</h1>
+    <p>The next-generation AI-driven orchestration platform for modern warehouses. Synchronize robotics, quality control, and last-mile delivery in one coherent system.</p>
+    <a href="login.html" class="btn-get-started">Access ERP System</a>
+    
+    <div id="api-status" style="margin-top: 40px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+      <div id="status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #64748b;"></div>
+      <span id="status-text" style="color: #64748b;">Checking backend connection...</span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      
+      try {
+        const res = await fetch(`${API_URL}/`);
+        if (res.ok) {
+          dot.style.background = '#22c55e';
+          dot.style.boxShadow = '0 0 10px #22c55e';
+          text.style.color = '#22c55e';
+          text.textContent = 'Backend System Online';
+        } else {
+          throw new Error();
+        }
+      } catch (e) {
+        dot.style.background = '#ef4444';
+        dot.style.boxShadow = '0 0 10px #ef4444';
+        text.style.color = '#ef4444';
+        text.textContent = `Backend Offline (Target: ${API_URL})`;
+      }
+    });
+  </script>
+</body>
+</html>

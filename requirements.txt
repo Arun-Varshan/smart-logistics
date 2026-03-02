@@ -1,0 +1,12 @@
+flask
+flask-cors
+gunicorn
+psycopg2-binary
+sqlalchemy
+python-dotenv
+pandas
+prophet
+ultralytics
+ortools
+opencv-python
+numpy

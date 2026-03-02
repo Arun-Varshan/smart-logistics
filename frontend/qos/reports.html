@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zone Quality Reports · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Quality & Safety (QOS)</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">QOS Dashboard</a>
+        <a class="sidebar-link" href="scanner.html">Damage Scanner (YOLO)</a>
+        <a class="sidebar-link" href="history.html">Scan History</a>
+        <a class="sidebar-link" href="analytics.html">Damage Analytics</a>
+        <a class="sidebar-link active" href="reports.html">Zone Quality Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Zone-wise Quality Reports</h1>
+        <p>Detailed breakdown of damage incidents by functional zones</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="panel-title">Zone Damage Summary</div>
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Zone Name</div><div>Total Parcels</div><div>Damaged</div><div>Damage Rate</div>
+            </div>
+            <div id="zoneReportBody" class="table-body">
+              <div style="padding:20px; text-align:center; color:var(--muted);">Loading zone metrics...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        // Custom logic to populate zone reports
+        apiFetch("/api/qos/analytics").then(r=>r.json()).then(data => {
+            const body = document.getElementById("zoneReportBody");
+            if (body && data.zones) {
+                body.innerHTML = Object.entries(data.zones).map(([zone, count]) => `
+                    <div class="table-row">
+                        <div>${zone}</div>
+                        <div>—</div>
+                        <div>${count}</div>
+                        <div>—</div>
+                    </div>
+                `).join("");
+            }
+        });
+    });
+  </script>
+</body>
+</html>

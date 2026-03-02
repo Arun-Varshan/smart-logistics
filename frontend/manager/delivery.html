@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery Overview · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link active" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h1>Last-Mile Delivery</h1>
+            <p>Monitor route efficiency and dispatch status</p>
+          </div>
+          <button id="initiateDeliveryBtn" class="btn btn-secondary">Dispatch Vehicles</button>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Ready for Dispatch</div><div id="dlReady" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">In Transit</div><div id="dlTransit" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Delivered Today</div><div id="dlDelivered" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">On-Time Performance</div><div class="kpi-value">94%</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Fleet Maintenance Status</div>
+            <div id="maintenanceBody" class="table-body" style="max-height: 300px; overflow-y: auto;">
+                <div style="color:var(--muted); text-align:center; padding:40px;">Checking vehicle health...</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">City-wise Distribution</div>
+            <canvas id="lgGodownChart" height="240"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Active Vehicle Fleet</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Vehicle ID</div><div>Vehicle Number</div><div>Driver</div><div>Status</div><div>Destination</div>
+              </div>
+              <div id="vehicleFleetBody" class="table-body">
+                <div style="color:var(--muted); text-align:center; padding:40px;">No active vehicles dispatched.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Delivery Map (Simulated City View)</div>
+            <div id="deliveryMap" style="height:400px; background:#0c1324; border-radius:12px; overflow:hidden; position:relative;">
+              <canvas id="godownMap" style="width:100%; height:100%;"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+    });
+  </script>
+</body>
+</html>

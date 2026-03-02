@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Damage Scanner · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Quality & Safety (QOS)</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">QOS Dashboard</a>
+        <a class="sidebar-link active" href="scanner.html">Damage Scanner (YOLO)</a>
+        <a class="sidebar-link" href="history.html">Scan History</a>
+        <a class="sidebar-link" href="analytics.html">Damage Analytics</a>
+        <a class="sidebar-link" href="reports.html">Zone Quality Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>AI Damage Detector</h1>
+        <p>Upload parcel photos for real-time YOLOv8 damage analysis</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="panel-body upload-body" style="padding:40px; text-align:center; border:2px dashed #e5e7eb; border-radius:24px;">
+            <div style="font-size:48px; margin-bottom:20px;">📷</div>
+            <button class="btn btn-primary" onclick="document.getElementById('qosDamagePhotos').click()" style="padding:16px 32px;">
+              Upload Parcel Photos
+            </button>
+            <input type="file" id="qosDamagePhotos" accept="image/*" multiple style="display:none" onchange="uploadDamagePhotos()">
+            <p style="margin-top:20px; color:var(--muted);">Supports JPG, PNG. Automated classification into SAFE, MINOR, or CRITICAL.</p>
+          </div>
+        </div>
+
+        <div id="damageAlerts" class="damage-alerts" style="margin-top:24px; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; background:transparent; border:none;">
+          <!-- Results will appear here -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+    });
+  </script>
+</body>
+</html>

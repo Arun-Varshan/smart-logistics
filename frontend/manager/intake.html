@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intake Station · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link active" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Parcel Receiving Station</h1>
+        <p>Phase 1: CSV upload and initial KPI generation (Single Source of Truth)</p>
+      </header>
+
+      <section class="content-section">
+        <div id="processingLockWarning" style="display:none; background:rgba(239,68,68,0.15); border:1px solid #ef4444; padding:12px; border-radius:8px; margin-bottom:24px; color:#ef4444; font-weight:600; align-items:center; gap:8px;">
+          <span style="font-size:18px;">⚠️</span>
+          <span>Cannot add/edit/remove robots during active parcel processing. Please wait for completion.</span>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Manifest Ingestion (CSV)</div>
+          <div class="panel-body" style="padding:20px; background:#F8FAFC; border-radius:16px; border:1px solid #e5e7eb;">
+            <p style="margin-bottom:20px; font-size:14px; color:var(--muted);">Format: id, zone, priority, destination_city, weight_kg, volume, created_at, status, amount_to_pay, godown</p>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <input type="file" id="intakeCsvFile" accept=".csv" style="flex:1; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff;">
+              <button class="btn btn-primary" id="intakeUploadBtn" style="padding:12px 24px;">Upload & Register Batch</button>
+            </div>
+            <div id="intakeUploadStatus" style="margin-top:16px; font-size:13px; font-weight:600;"></div>
+          </div>
+        </div>
+
+        <div class="kpi-grid" style="margin-top:24px;">
+          <div class="kpi-card"><div class="kpi-label">Total Weight</div><div id="kpi-weight" class="kpi-value">0 kg</div></div>
+          <div class="kpi-card"><div class="kpi-label">Total Volume</div><div id="kpi-volume" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Priority Load</div><div id="kpi-prio" class="kpi-value">0%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Manifest Date</div><div id="kpi-date" class="kpi-value">—</div></div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Recently Ingested Parcels</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Parcel ID</div><div>Zone</div><div>Priority</div><div>City</div><div>Amount</div><div>Godown</div><div>Status</div>
+              </div>
+              <div id="intakeStreamBody" class="table-body"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+        
+        // Listen for stream events to toggle lock UI
+        window.addEventListener('wiztric-stream-update', (e) => {
+            const data = e.detail;
+            const lockBox = document.getElementById("processingLockWarning");
+            if (lockBox && data && data.processing_active) {
+                lockBox.style.display = 'flex';
+            } else if (lockBox) {
+                lockBox.style.display = 'none';
+            }
+        });
+    });
+  </script>
+</body>
+</html>

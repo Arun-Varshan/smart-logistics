@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hub Manager Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h1>Executive Overview</h1>
+            <p>System-wide KPIs and critical operational alerts</p>
+          </div>
+          <div id="processing-controls" style="display:flex; align-items:center; gap:12px;">
+            <div id="db-status-tag" class="sidebar-badge" style="background:rgba(59,130,246,0.1); color:var(--primary); font-size:10px;">Checking DB...</div>
+            <button id="initiateProcessingBtn" class="btn btn-primary">Start Hub Processing</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Active Parcels</div><div id="adParcels" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Forecasted Demand</div><div id="adForecast" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Actual vs Forecast</div><div id="adVariance" class="kpi-value">0%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Critical Alerts</div><div id="adAlerts" class="kpi-value" style="color:var(--danger);">0</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Operations Summary</div>
+            <div id="financeSummary">
+              <div style="color:var(--muted); text-align:center; padding:40px;">Fetching operational metrics...</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Godown Allocation</div>
+            <canvas id="adGodownChart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Active Batch Progress</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Parcel</div><div>Zone</div><div>Status</div><div>Time</div>
+              </div>
+              <div id="adActivityTable" class="table-body">
+                <div style="color:var(--muted); text-align:center; padding:40px;">No active processing for today. Please upload a manifest.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="hubpulse-bubble">
+    <div id="hubpulse-toggle">Advisor</div>
+    <div id="hubpulse-panel">
+      <div id="hubpulse-header">LogiMind AI Advisor</div>
+      <div id="hubpulse-messages"></div>
+    </div>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+    });
+  </script>
+</body>
+</html>

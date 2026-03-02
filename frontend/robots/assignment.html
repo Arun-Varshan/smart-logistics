@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robot Assignment · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Robotics Supervisor</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Robotics Dashboard</a>
+        <a class="sidebar-link" href="fleet.html">Robots in Hub</a>
+        <a class="sidebar-link" href="twin.html">Digital Twin View</a>
+        <a class="sidebar-link active" href="assignment.html">Robot Assignment</a>
+        <a class="sidebar-link" href="health.html">Health & Maintenance</a>
+        <a class="sidebar-link" href="transport.html">Zone Transport Status</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Forecast-Based Assignment</h1>
+        <p>Assign robot fleets to zones based on Hub Manager's approved forecast</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="panel-title">Pending Forecast Approvals</div>
+          <div id="assignmentStatus" style="padding:40px; text-align:center; color:var(--muted);">
+            Waiting for Hub Manager to approve today's forecast.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+        
+        const pollStatus = () => {
+            apiFetch("/api/stream/simulation").then(r=>r.json()).then(data => {
+                const statusEl = document.getElementById("assignmentStatus");
+                if (data.robots && data.robots.length > 0) {
+                    statusEl.innerHTML = `
+                        <div style="color:var(--success); font-weight:700; font-size:18px; margin-bottom:10px;">✓ APPROVED</div>
+                        <div style="color:var(--text); font-size:14px;">
+                            Fleet of ${data.robots.length} robots successfully deployed based on latest volume forecast.
+                        </div>
+                        <div style="margin-top:20px; display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:15px;">
+                            ${data.robots.map(r => `
+                                <div class="kpi-card" style="padding:10px; border:1px solid rgba(255,255,255,0.05);">
+                                    <div style="font-size:11px; color:var(--muted);">${r.id}</div>
+                                    <div style="font-weight:700; font-size:13px; color:var(--primary);">${r.type}</div>
+                                </div>
+                            `).join("")}
+                        </div>
+                    `;
+                }
+            });
+        };
+        
+        pollStatus();
+        setInterval(pollStatus, 5000);
+    });
+  </script>
+</body>
+</html>

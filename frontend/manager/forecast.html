@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forecast & AI Insights · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link active" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h1>Forecasting & Intelligence</h1>
+            <p>AI-driven predictive modeling for upcoming parcel volumes and robot demand</p>
+          </div>
+          <button id="approveRobotsBtn" class="btn btn-primary" style="display:none;">Approve Robot Assignment</button>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Predicted Volume</div><div id="plTomorrow" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Robot Demand</div><div id="plRobots" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Peak Hour</div><div id="plPeak" class="kpi-value">11:00 AM</div></div>
+          <div class="kpi-card"><div class="kpi-label">Model Accuracy</div><div class="kpi-value">96.4%</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Volume Forecast (7 Days)</div>
+            <canvas id="plForecastChart"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">AI Trend Prediction (Linear)</div>
+            <canvas id="plTrendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Forecasted Zone Distribution</div>
+            <canvas id="plZoneDistChart"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">AI Operational Briefing</div>
+            <div id="hubpulse-messages" style="max-height: 300px; overflow-y: auto;">
+              <div style="color:var(--muted); text-align:center; padding:40px;">Generating briefing...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        initApp();
+        // Specific logic for forecast page
+        try {
+            const res = await apiFetch("/api/ai/advisor_greeting");
+            const data = await res.json();
+            const messages = document.getElementById("hubpulse-messages");
+            if (messages) messages.innerHTML = `<div class="hubpulse-msg ai">${data.greeting}</div>`;
+            updatePlanningForecastCharts(data);
+            
+            const plTomorrow = document.getElementById("plTomorrow");
+            if (plTomorrow) plTomorrow.textContent = data.forecast.total;
+            const plRobots = document.getElementById("plRobots");
+            if (plRobots) plRobots.textContent = data.forecast.robots;
+
+            const appBtn = document.getElementById("approveRobotsBtn");
+            if (appBtn) {
+                appBtn.style.display = "block";
+                appBtn.onclick = async () => {
+                    appBtn.disabled = true;
+                    appBtn.textContent = "Approving...";
+                    try {
+                        const res = await apiFetch("/api/admin/approve_robots", { method: "POST" });
+                        const dataRes = await res.json();
+                        if (res.ok) {
+                            alert("✅ Success: " + dataRes.message);
+                            appBtn.textContent = "Forecast Approved";
+                            appBtn.style.background = "var(--success)";
+                            appBtn.style.borderColor = "var(--success)";
+                        } else {
+                            alert("❌ Error: " + (dataRes.error || "Failed to approve."));
+                            appBtn.disabled = false;
+                            appBtn.textContent = "Approve Robot Assignment";
+                        }
+                    } catch (e) {
+                        alert("Connection Error: " + e.message);
+                        appBtn.disabled = false;
+                        appBtn.textContent = "Approve Robot Assignment";
+                    }
+                };
+            }
+        } catch (e) { console.error(e); }
+    });
+  </script>
+</body>
+</html>

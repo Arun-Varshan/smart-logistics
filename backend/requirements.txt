@@ -1,0 +1,17 @@
+flask
+flask-cors
+pandas
+numpy
+prophet
+joblib
+ortools
+plotly
+fastapi
+uvicorn
+sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+psycopg2-binary
+redis
+python-multipart
+gunicorn

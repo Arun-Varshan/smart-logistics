@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Hub Flow · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link active" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Live Operational Flow</h1>
+        <p>Real-time monitoring of robotic movement and zone allocation</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel-grid single">
+          <div class="panel" style="padding:0; overflow:auto; border-radius:24px;">
+            <div style="padding:16px 20px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+              <div class="panel-title" style="margin:0;">Hub Digital Twin</div>
+              <div style="display:flex; gap:12px; font-size:12px; color:var(--muted);">
+                <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#4de1c9;"></span> Active</span>
+                <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px; height:8px; border-radius:50%; background:#7aa2ff;"></span> Idle</span>
+              </div>
+            </div>
+            <canvas id="twinCanvas" style="width:1400px; height:700px; background:#0c1324; display:block; margin:0 auto;"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Robot Utilization</div>
+            <canvas id="robotPie" height="200"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Zone Backlog</div>
+            <canvas id="zonePie" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-grid single" style="margin-top:24px;">
+          <div class="panel" style="padding:0; overflow:hidden; border-radius:24px;">
+            <div style="padding:16px 20px; border-bottom:1px solid #e5e7eb;">
+              <div class="panel-title" style="margin:0;">Godown & Regional Distribution</div>
+            </div>
+            <canvas id="godownMap" style="width:100%; height:400px; background:#0c1324;"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        initRoboticsPage();
+        startSimulationStream();
+        
+        // Ensure stream is active if navigating directly here
+        if (!window._simStreamActive) {
+            console.log("Forcing stream start on Flow page...");
+            startSimulationStream();
+        }
+    });
+  </script>
+</body>
+</html>

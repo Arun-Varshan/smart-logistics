@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+env/
+yolov8env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Databases
+*.sqlite3
+
+# ML models
+*.pt
+*.pth
+*.pkl
+runs/
+
+# Datasets
+data/
+data_samples/
+*.csv
+
+# Training folders
+Parcel Box Damage Classification.v2i.yolov8/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+# Database
+*.db
+*.sqlite3

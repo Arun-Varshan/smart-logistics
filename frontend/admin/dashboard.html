@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">System Administrator</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">System Overview</a>
+        <a class="sidebar-link" href="users.html">User Management</a>
+        <a class="sidebar-link" href="logs.html">System Logs</a>
+        <a class="sidebar-link" href="settings.html">Global Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>System Administrator Control</h1>
+        <p>Manage users, global parameters, and system health</p>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Active Users</div><div class="kpi-value">5</div></div>
+          <div class="kpi-card"><div class="kpi-label">API Status</div><div class="kpi-value" style="color:var(--success);">ONLINE</div></div>
+          <div class="kpi-card"><div class="kpi-label">System Load</div><div class="kpi-value">12%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Last Backup</div><div class="kpi-value">2h ago</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Operational Data Export</div>
+            <div style="padding:20px; text-align:center;">
+              <button id="adminExportBtn" class="btn btn-primary" style="width:100%; padding:14px;">Download Master Operations Report (CSV)</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Critical System Logs</div>
+            <div id="adminLogFeed" class="logs" style="max-height: 240px;">
+              <div style="color:var(--muted); text-align:center; padding:20px;">No critical errors detected.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        document.getElementById("adminExportBtn").onclick = () => {
+            window.location.href = `${API_URL}/api/reports/export?access_token=${accessToken}`;
+        };
+    });
+  </script>
+</body>
+</html>

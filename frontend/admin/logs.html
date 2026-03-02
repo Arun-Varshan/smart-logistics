@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>System Logs · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">System Administrator</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">System Overview</a>
+        <a class="sidebar-link" href="users.html">User Management</a>
+        <a class="sidebar-link active" href="logs.html">System Logs</a>
+        <a class="sidebar-link" href="settings.html">Global Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1>System Logs</h1>
+      <section class="content-section">
+        <div class="panel">
+          <div id="logBody" class="logs" style="max-height: 600px;">
+            <div style="padding:20px; text-align:center; color:var(--muted);">Fetching system events...</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        apiFetch("/api/admin/notifications").then(r=>r.json()).then(data => {
+            const body = document.getElementById("logBody");
+            if (body && data.notifications) {
+                body.innerHTML = data.notifications.map(l => `<div>[${l.timestamp}] ${l.message}</div>`).join("");
+            }
+        });
+    });
+  </script>
+</body>
+</html>

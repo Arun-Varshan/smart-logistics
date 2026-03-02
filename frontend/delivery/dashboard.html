@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Delivery Operations</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">Delivery Dashboard</a>
+        <a class="sidebar-link" href="vehicles.html">List of Vehicles</a>
+        <a class="sidebar-link" href="map.html">Live Delivery Map</a>
+        <a class="sidebar-link" href="optimization.html">Route Optimization</a>
+        <a class="sidebar-link" href="history.html">Delivery History</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div>
+            <h1>Delivery Operations Control</h1>
+            <p>Monitor last-mile performance and fleet efficiency</p>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button class="btn btn-secondary" onclick="exportDeliveryCSV()">Export Delivery CSV</button>
+            <button class="btn btn-primary" onclick="showAddVehicleModal()">Add New Vehicle</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Active Deliveries</div><div id="dlTransit" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">On-Time %</div><div class="kpi-value">94.8%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Ready for Dispatch</div><div id="dlReady" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg. ETA</div><div class="kpi-value">2.4h</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">City-wise Distribution</div>
+            <canvas id="lgGodownChart" height="240"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Operational Summary</div>
+            <div id="dlSummary" style="padding:20px; color:var(--muted);">
+              Waiting for daily manifest...
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Vehicle Fleet List</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>ID</div><div>Number</div><div>Driver</div><div>Status</div><div>Maint.</div>
+              </div>
+              <div id="vehicleFleetBody" class="table-body">
+                <div style="padding:20px; text-align:center; color:var(--muted);">Loading fleet...</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Fleet Maintenance Logs</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Vehicle</div><div>Issue</div><div>Date</div><div>Status</div>
+              </div>
+              <div id="maintenanceLogsBody" class="table-body" style="max-height:200px; overflow-y:auto;">
+                <div style="padding:20px; text-align:center; color:var(--muted);">No logs.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cluster Alert Box -->
+        <div id="clusterAlertBox" style="display:none; background:rgba(16, 185, 129, 0.15); border:1px solid #10b981; padding:16px; border-radius:8px; margin-top:24px; color:#10b981; font-weight:600; flex-direction:column; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:20px;">✅</span>
+                <span style="font-size:16px;">All parcels sorted into different clusters based on locations</span>
+            </div>
+            <div id="clusterList" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px;">
+                <!-- Cluster items will be injected here -->
+            </div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-title">Dispatch & Payment Logs</div>
+            <div id="transportLogs" style="padding:10px; color:var(--muted); max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+              <div style="padding:20px; text-align:center;">Listening for events...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Add Vehicle Modal -->
+  <div id="addVehicleModal" class="modal-overlay">
+    <div class="panel modal-content" style="width:400px; padding:24px;">
+      <h2 style="margin-bottom:20px;">Register New Vehicle</h2>
+      <div style="display:grid; gap:16px;">
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Vehicle ID (e.g., V-101)</label>
+          <input type="text" id="vId" class="form-input" placeholder="V-101">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Vehicle Number</label>
+          <input type="text" id="vNum" class="form-input" placeholder="KA-01-AB-1234">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Driver Name</label>
+          <input type="text" id="vDriver" class="form-input" placeholder="Enter name">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Capacity (kg)</label>
+          <input type="number" id="vCap" value="500" class="form-input">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Vehicle Type</label>
+          <select id="vType" class="form-input" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text);">
+            <option value="Van">Van</option>
+            <option value="Mini Truck">Mini Truck</option>
+            <option value="Truck">Truck</option>
+            <option value="Bike">Bike</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:24px;">
+        <button class="btn btn-primary" style="flex:1" onclick="submitVehicle()">Add Vehicle</button>
+        <button class="btn btn-secondary" style="flex:1" onclick="hideAddVehicleModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+        
+        // Force simulation of clusters for demo
+        setTimeout(() => {
+            showClusterAlert({
+                assignments: [
+                    {cluster: "Mumbai", vehicle: "DL05", count: 12},
+                    {cluster: "Delhi", vehicle: "DL12", count: 8}
+                ]
+            });
+        }, 3000);
+
+        window.addEventListener('wiztric-stream-update', (e) => {
+            const data = e.detail;
+            if (data.events && data.events.length > 0) {
+                const clusterEvent = data.events.find(ev => ev.type === "CLUSTERS_FORMED");
+                if (clusterEvent) {
+                    showClusterAlert(clusterEvent.data);
+                }
+            }
+        });
+    });
+
+    function showClusterAlert(data) {
+        const box = document.getElementById("clusterAlertBox");
+        const list = document.getElementById("clusterList");
+        
+        if (!box || !list) return;
+        
+        box.style.display = "flex";
+        
+        // Normalize input: could be {assignments: [...] } or just [...]
+        let items = [];
+        if (data.assignments && Array.isArray(data.assignments)) {
+            items = data.assignments;
+        } else if (Array.isArray(data)) {
+            items = data;
+        } else if (data.cluster) {
+             items = [data];
+        }
+
+        if (items.length > 0) {
+            list.innerHTML = items.map(a => `
+                <div style="background:rgba(16,185,129,0.2); padding:4px 12px; border-radius:16px; font-size:13px; border:1px solid rgba(16,185,129,0.4);">
+                    Cluster <strong>${a.cluster}</strong> assigned to Vehicle <strong>${a.vehicle}</strong> (${a.count} parcels)
+                </div>
+            `).join("");
+        }
+        
+        // Hide after 30 seconds
+        setTimeout(() => {
+            box.style.display = "none";
+        }, 30000);
+    }    fetchTransportTracking();
+        fetchPaymentLogs();
+        fetchVehicleFleet();
+    });
+
+    function showAddVehicleModal() {
+        document.getElementById('addVehicleModal').style.display = 'grid';
+    }
+    function hideAddVehicleModal() {
+        document.getElementById('addVehicleModal').style.display = 'none';
+    }
+    async function exportDeliveryCSV() {
+        const res = await apiFetch("/api/delivery/export");
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "delivery_report.csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+    }
+
+    async function fetchVehicleFleet() {
+        try {
+            const res = await apiFetch("/api/transport/vehicles");
+            const vehicles = await res.json();
+            const body = document.getElementById("vehicleFleetBody");
+            
+            if (body) {
+                if (!vehicles || vehicles.length === 0) {
+                    body.innerHTML = `<div style="padding:20px; text-align:center; color:var(--muted);">No vehicles found.</div>`;
+                } else {
+                    body.innerHTML = vehicles.slice(0, 10).map(v => `
+                        <div class="table-row">
+                            <div style="font-weight:700; color:var(--primary);">${v.vehicle_id}</div>
+                            <div>${v.vehicle_number}</div>
+                            <div>${v.driver_name}</div>
+                            <div><span class="badge ${v.current_status === 'IDLE' ? 'received-at-hub' : 'out-for-delivery'}">${v.current_status}</span></div>
+                            <div style="color:${v.maintenance_status === 'OK' ? 'var(--success)' : 'var(--danger)'}; font-size:12px;">${v.maintenance_status || 'OK'}</div>
+                        </div>
+                    `).join("");
+                    
+                    // Populate dummy maintenance logs based on vehicles
+                    const maintBody = document.getElementById("maintenanceLogsBody");
+                    if (maintBody) {
+                        const issues = ["Oil Change", "Brake Check", "Tire Replacement", "Engine Tuning"];
+                        maintBody.innerHTML = vehicles.slice(0, 5).map(v => `
+                            <div class="table-row">
+                                <div>${v.vehicle_number}</div>
+                                <div>${issues[Math.floor(Math.random() * issues.length)]}</div>
+                                <div>${new Date().toLocaleDateString()}</div>
+                                <div><span class="badge ${v.maintenance_status === 'OK' ? 'received-at-hub' : 'critical-damage'}">${v.maintenance_status === 'OK' ? 'Resolved' : 'Pending'}</span></div>
+                            </div>
+                        `).join("");
+                    }
+                }
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function submitVehicle() {
+        const payload = {
+            vehicle_id: document.getElementById('vId').value,
+            vehicle_number: document.getElementById('vNum').value,
+            driver_name: document.getElementById('vDriver').value,
+            capacity: parseInt(document.getElementById('vCap').value),
+            vehicle_type: document.getElementById('vType').value
+        };
+        const res = await apiFetch("/api/transport/add_vehicle", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            alert("Vehicle added successfully");
+            hideAddVehicleModal();
+            fetchVehicleFleet();
+        } else {
+            const data = await res.json();
+            alert("Error: " + (data.error || "Failed to add vehicle"));
+        }
+    }
+    async function fetchPaymentLogs() {
+        try {
+            const res = await apiFetch("/api/delivery/logs");
+            const data = await res.json();
+            const logsEl = document.getElementById("transportLogs");
+            if (!logsEl || !data.length) return;
+            
+            // Clear if we have new structured logs
+            logsEl.innerHTML = "";
+            data.forEach(log => {
+                const div = document.createElement("div");
+                div.className = "log-entry";
+                div.style.padding = "10px";
+                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-weight:700; color:var(--primary);">${log.parcel_id}</span>
+                        <span class="badge ${log.payment_mode === 'ONLINE' ? 'received-at-hub' : 'out-for-delivery'}">${log.payment_mode}</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+                        Amount: ₹${log.amount} | Status: ${log.payment_status} | ${new Date(log.created_at).toLocaleTimeString()}
+                    </div>
+                `;
+                logsEl.appendChild(div);
+            });
+        } catch (e) {}
+    }
+  </script>
+</body>
+</html>

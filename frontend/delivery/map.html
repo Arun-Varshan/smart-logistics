@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Delivery Map · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Delivery Operations</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Delivery Dashboard</a>
+        <a class="sidebar-link active" href="map.html">Live Delivery Map</a>
+        <a class="sidebar-link" href="optimization.html">Route Optimization</a>
+        <a class="sidebar-link" href="history.html">Delivery History</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Live Delivery Tracking</h1>
+        <p>Real-time visualization of fleet movement across destination cities</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel" style="padding:0; overflow:hidden; border-radius:24px; background:#0c1324;">
+          <div id="deliveryMap" style="height:600px; position:relative;">
+            <canvas id="networkCanvas" style="width:100%; height:100%;"></canvas>
+          </div>
+        </div>
+        
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Active Fleet Status</div>
+            <div id="dlFleetBody" class="logs">
+              <!-- Fleet updates -->
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">ETA & Delays</div>
+            <div id="dlEtaBody" class="logs">
+              <!-- ETA updates -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+        
+        // Setup Canvas
+        const canvas = document.getElementById("networkCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        const resize = () => {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        };
+        window.addEventListener('resize', resize);
+        resize();
+        
+        // Define Network Topology (Hub Center)
+        const CITIES = ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow"];
+        const NODES = {};
+        const HUB = { x: 0.5, y: 0.5, label: "Central Hub" };
+        
+        // Initialize nodes in a circle
+        CITIES.forEach((c, i) => {
+            const angle = (i / CITIES.length) * Math.PI * 2;
+            const r = 0.35; // Radius from center (normalized)
+            NODES[c] = {
+                x: 0.5 + Math.cos(angle) * r,
+                y: 0.5 + Math.sin(angle) * r,
+                label: c
+            };
+        });
+
+        window.renderDeliveryNetwork = (fleet) => {
+            const W = canvas.width;
+            const H = canvas.height;
+            const scale = Math.min(W, H);
+            
+            ctx.clearRect(0, 0, W, H);
+            
+            // Draw Connections
+            ctx.strokeStyle = "rgba(255,255,255,0.1)";
+            ctx.lineWidth = 2;
+            Object.values(NODES).forEach(n => {
+                ctx.beginPath();
+                ctx.moveTo(HUB.x * W, HUB.y * H);
+                ctx.lineTo(n.x * W, n.y * H);
+                ctx.stroke();
+            });
+            
+            // Draw Nodes
+            const drawNode = (n, color, size) => {
+                const x = n.x * W;
+                const y = n.y * H;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = "#fff";
+                ctx.font = "12px Inter";
+                ctx.fillText(n.label, x + 15, y + 4);
+            };
+            
+            // Draw Godowns
+            Object.values(NODES).forEach(n => drawNode(n, "#3b82f6", 8));
+            
+            // Draw Hub
+            drawNode(HUB, "#4de1c9", 12);
+            
+            // Draw Fleet
+            Object.values(fleet).forEach(v => {
+                if (!NODES[v.city]) return;
+                
+                const start = HUB;
+                const end = NODES[v.city];
+                const p = v.progress;
+                
+                const curX = (start.x + (end.x - start.x) * p) * W;
+                const curY = (start.y + (end.y - start.y) * p) * H;
+                
+                // Vehicle Icon
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#f5a623";
+                ctx.fillStyle = "#f5a623";
+                ctx.beginPath();
+                ctx.arc(curX, curY, 6, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Label
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 10px monospace";
+                ctx.fillText(v.id, curX - 15, curY - 10);
+            });
+            
+            // Update Lists
+            const fleetBody = document.getElementById("dlFleetBody");
+            if (fleetBody) {
+                const active = Object.values(fleet);
+                if (active.length === 0) {
+                    fleetBody.innerHTML = `<div style="padding:20px; color:var(--muted);">No active delivery vehicles.</div>`;
+                } else {
+                    fleetBody.innerHTML = active.map(v => `
+                        <div class="log-entry">
+                            <span style="color:var(--primary); font-weight:700;">${v.id}</span>
+                            <span>to ${v.city}</span>
+                            <span class="badge in-transit">${v.status}</span>
+                            <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+                                Loc: ${v.current_node || 'Hub'} | Load: ${v.load}
+                            </div>
+                        </div>
+                    `).join("");
+                }
+            }
+        };
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery History · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Delivery Operations</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Delivery Dashboard</a>
+        <a class="sidebar-link" href="map.html">Live Delivery Map</a>
+        <a class="sidebar-link" href="optimization.html">Route Optimization</a>
+        <a class="sidebar-link active" href="history.html">Delivery History</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Historical Deliveries</h1>
+        <p>Log of all completed parcel deliveries and performance benchmarks</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Parcel ID</div><div>City</div><div>Priority</div><div>Time to Delivery</div><div>Status</div>
+            </div>
+            <div id="dlHistoryTable" class="table-body">
+              <!-- Content -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        // Load delivered parcels
+        apiFetch("/parcels").then(r=>r.json()).then(data => {
+            const body = document.getElementById("dlHistoryTable");
+            const delivered = data.filter(p => p.status === "DELIVERED");
+            if (body) {
+                body.innerHTML = delivered.map(p => `
+                    <div class="table-row">
+                        <div>${p.id}</div>
+                        <div>${p.destination_city}</div>
+                        <div>${p.priority}</div>
+                        <div>2.1h</div>
+                        <div style="color:var(--success)">COMPLETED</div>
+                    </div>
+                `).join("");
+            }
+        });
+    });
+  </script>
+</body>
+</html>

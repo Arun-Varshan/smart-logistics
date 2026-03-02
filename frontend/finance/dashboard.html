@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finance Dashboard · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Finance Department</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link active" href="dashboard.html">Revenue Overview</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div>
+            <h1>Financial Performance</h1>
+            <p>Real-time revenue tracking and payment analysis</p>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button class="btn btn-secondary" onclick="exportFinanceCSV()">Export CSV Report</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div id="finRevenue" class="kpi-value">₹0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Transactions</div><div id="finTxns" class="kpi-value">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">Avg Order Value</div><div class="kpi-value">₹845</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pending Payments</div><div class="kpi-value">12</div></div>
+        </div>
+
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Revenue Trend</div>
+            <canvas id="revenueChart" height="240"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Real-time Fuel Costs</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Vehicle</div><div>Route</div><div>Distance</div><div>Fuel Cost</div>
+              </div>
+              <div id="fuelCostBody" class="table-body" style="max-height:200px; overflow-y:auto;">
+                <!-- Dummy Fuel Logs -->
+                <div class="table-row"><div>DL01</div><div>Hub->Mumbai</div><div>1240 km</div><div style="color:var(--danger);">-₹14,500</div></div>
+                <div class="table-row"><div>DL05</div><div>Hub->Delhi</div><div>890 km</div><div style="color:var(--danger);">-₹9,200</div></div>
+                <div class="table-row"><div>DL12</div><div>Last Mile</div><div>45 km</div><div style="color:var(--danger);">-₹450</div></div>
+                <div class="table-row"><div>DL08</div><div>Hub->Chennai</div><div>1600 km</div><div style="color:var(--danger);">-₹18,100</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    function showFineModal() { document.getElementById('fineModal').style.display = 'grid'; }
+    function hideFineModal() { document.getElementById('fineModal').style.display = 'none'; }
+    
+    async function submitFine() {
+        const id = document.getElementById('fineParcelId').value;
+        const amt = document.getElementById('fineAmount').value;
+        const reason = document.getElementById('fineReason').value;
+        
+        const res = await apiFetch("/api/finance/record_payment", {
+            method: "POST",
+            body: JSON.stringify({ parcel_id: id, amount: -Math.abs(amt), mode: "FINE", reason: reason })
+        });
+        if (res.ok) {
+            alert("Fine issued and sent to customer notification.");
+            hideFineModal();
+            location.reload();
+        }
+    }
+
+    async function exportFinanceCSV() {
+        const res = await apiFetch("/api/finance/export");
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "finance_report.csv";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        fetchFinanceSummary();
+        fetchTransactions();
+        
+        // Listen for live updates
+        window.addEventListener('wiztric-stream-update', (e) => {
+             const data = e.detail;
+             if (data.events) {
+                 const financeEvent = data.events.find(ev => ev.type === "FINANCE_UPDATE" || ev.type === "FINANCE_PAYMENT");
+                 if (financeEvent) {
+                     fetchTransactions(); // Refresh list on new payment
+                     fetchFinanceSummary();
+                 }
+             }
+        });
+    });
+
+    async function fetchFinanceSummary() {
+        try {
+            const res = await apiFetch("/api/finance/summary");
+            const data = await res.json();
+            document.getElementById("finRevenue").textContent = "₹" + (data.total_revenue || 0).toLocaleString();
+            document.getElementById("finTxns").textContent = data.total_transactions || 0;
+            
+            // Dummy chart data
+            renderChart([12000, 19000, 15000, 22000, 24000, data.total_revenue || 25000]);
+        } catch (e) { console.error(e); }
+    }
+    
+    function renderChart(dataPoints) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        // Destroy existing if needed (simple check)
+        if (window.myRevenueChart) window.myRevenueChart.destroy();
+        
+        window.myRevenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Today'],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: dataPoints,
+                    borderColor: '#10b981',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    async function fetchTransactions() {
+        try {
+            const res = await apiFetch("/api/finance/records");
+            const records = await res.json();
+            const list = document.getElementById("transactionList");
+            if (!list) return;
+
+            if (!records || records.length === 0) {
+                list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--muted);">No transactions found.</div>`;
+                return;
+            }
+
+            list.innerHTML = records.map(r => `
+                <div class="table-row">
+                    <div>${r.transaction_id || ('TXN-' + r.id)}</div>
+                    <div>${r.parcel_id}</div>
+                    <div style="font-weight:600; color:var(--success);">₹${r.amount}</div>
+                    <div>${r.payment_mode}</div>
+                    <div><span class="badge received-at-hub">${r.payment_status}</span></div>
+                    <div>${new Date(r.created_at).toLocaleString()}</div>
+                </div>
+            `).join("");
+        } catch (e) { console.error(e); }
+    }
+  </script>
+</body>
+</html>

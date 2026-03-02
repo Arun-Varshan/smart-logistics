@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Global Settings · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">System Administrator</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">System Overview</a>
+        <a class="sidebar-link" href="users.html">User Management</a>
+        <a class="sidebar-link" href="logs.html">System Logs</a>
+        <a class="sidebar-link active" href="settings.html">Global Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <h1>Global Settings</h1>
+      <section class="content-section">
+        <div class="panel" style="max-width: 600px;">
+          <div class="auth-field">
+            <label>Default Simulation Speed</label>
+            <input type="range" min="1" max="10" value="5" style="width:100%;">
+          </div>
+          <div class="auth-field" style="margin-top:20px;">
+            <label>Maintenance Alert Threshold (Battery %)</label>
+            <input type="number" value="20" style="width:100%; padding:10px; border-radius:8px; background:#1e293b; border:1px solid #334155; color:#fff;">
+          </div>
+          <button class="btn btn-primary" style="margin-top:30px; width:100%;">Save Configurations</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', initApp);</script>
+</body>
+</html>

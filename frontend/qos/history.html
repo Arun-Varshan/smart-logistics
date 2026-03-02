@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scan History · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Quality & Safety (QOS)</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">QOS Dashboard</a>
+        <a class="sidebar-link" href="scanner.html">Damage Scanner (YOLO)</a>
+        <a class="sidebar-link active" href="history.html">Scan History</a>
+        <a class="sidebar-link" href="analytics.html">Damage Analytics</a>
+        <a class="sidebar-link" href="reports.html">Zone Quality Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Scan History</h1>
+        <p>Comprehensive log of all AI-driven quality inspections</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Timestamp</div><div>Parcel ID</div><div>Status</div><div>Confidence</div>
+            </div>
+            <div id="qrTableBody" class="table-body">
+              <!-- Content loaded via script -->
+            </div>
+          </div>
+          <div id="qrEmpty" style="display:none; text-align:center; padding:40px; color:var(--muted);">No scans recorded yet.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        loadQosReports(); // Existing function name from script.js
+    });
+  </script>
+</body>
+</html>

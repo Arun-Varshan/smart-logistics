@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zone Transport Status · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Robotics Supervisor</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Robotics Dashboard</a>
+        <a class="sidebar-link" href="fleet.html">Robots in Hub</a>
+        <a class="sidebar-link" href="twin.html">Digital Twin View</a>
+        <a class="sidebar-link" href="assignment.html">Robot Assignment</a>
+        <a class="sidebar-link" href="health.html">Health & Maintenance</a>
+        <a class="sidebar-link active" href="transport.html">Zone Transport Status</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Zone Transport Monitoring</h1>
+        <p>Real-time status of inter-zone parcel movement and bottleneck detection</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="panel-title">Active Transports</div>
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Robot</div><div>Source</div><div>Destination</div><div>Progress</div>
+            </div>
+            <div id="transportBody" class="table-body">
+              <div style="padding:20px; text-align:center; color:var(--muted);">No active transports. Hub processing standby.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        
+        const updateTransport = () => {
+            apiFetch("/api/stream/simulation").then(r=>r.json()).then(data => {
+                const body = document.getElementById("transportBody");
+                const activeRobots = data.robots.filter(r => r.status === "moving_to_zone" || r.status === "delivering");
+                
+                if (activeRobots.length === 0) {
+                    body.innerHTML = `<div style="padding:40px; text-align:center; color:var(--muted);">All zones stable. No active transports in progress.</div>`;
+                    return;
+                }
+                
+                body.innerHTML = activeRobots.map(r => `
+                    <div class="table-row">
+                        <div style="font-weight:700; color:var(--primary);">${r.id}</div>
+                        <div>Intake Dock</div>
+                        <div>${r.zone}</div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+                                <div style="width:${r.status === 'delivering' ? '100%' : '60%'}; height:100%; background:var(--success); transition: width 0.5s;"></div>
+                            </div>
+                            <span style="font-size:11px; color:var(--muted); min-width:30px;">${r.status === 'delivering' ? '100%' : 'In Route'}</span>
+                        </div>
+                    </div>
+                `).join("");
+            });
+        };
+        
+        updateTransport();
+        setInterval(updateTransport, 2000);
+    });
+  </script>
+</body>
+</html>

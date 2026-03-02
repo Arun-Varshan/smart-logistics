@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robots in Hub · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    /* Table layout for 6 columns */
+    .table-row, .table-head {
+      display: grid !important;
+      grid-template-columns: 100px 140px 140px 1fr 120px 220px !important;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 24px;
+    }
+    .table-body .table-row {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .table-body .table-row:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .btn-action {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-action:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+    .btn-edit {
+      color: var(--primary);
+      border-color: rgba(77, 225, 201, 0.3);
+    }
+    .btn-edit:hover {
+      background: rgba(77, 225, 201, 0.15);
+    }
+    .btn-remove {
+      color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.3);
+    }
+    .btn-remove:hover {
+      background: rgba(255, 107, 107, 0.15);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Robotics Supervisor</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Robotics Dashboard</a>
+        <a class="sidebar-link active" href="fleet.html">Robots in Hub</a>
+        <a class="sidebar-link" href="twin.html">Digital Twin View</a>
+        <a class="sidebar-link" href="assignment.html">Robot Assignment</a>
+        <a class="sidebar-link" href="health.html">Health & Maintenance</a>
+        <a class="sidebar-link" href="transport.html">Zone Transport Status</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div>
+            <h1>Robots in Hub</h1>
+            <p>Manage and monitor individual robot units</p>
+          </div>
+          <button id="addRobotBtn" class="btn btn-primary" onclick="showAddRobotModal()">Add New Robot</button>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="panel-grid single">
+          <div class="panel">
+            <div class="panel-title">Robot Fleet List</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>ID</div>
+                <div>Type</div>
+                <div>Battery</div>
+                <div>Status</div>
+                <div>Zone</div>
+                <div style="text-align: right;">Actions</div>
+              </div>
+              <div id="robotFleetBody" class="table-body">
+                <div style="padding:40px; text-align:center; color:var(--muted);">Loading robots...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Add Robot Modal -->
+  <div id="addRobotModal" class="modal-overlay">
+    <div class="panel modal-content" style="width:400px; padding:24px; position:relative;">
+      <button class="btn-close" onclick="closeAddRobotModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;">&times;</button>
+      <h2 style="margin-bottom:20px;">Deploy New Robot</h2>
+      <div style="display:grid; gap:16px;">
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Robot ID</label>
+          <input type="text" id="newRobotId" class="form-input" placeholder="R-101">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Status</label>
+          <select id="newRobotStatus" class="form-input" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text);">
+            <option value="idle">Idle</option>
+            <option value="active">Active</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:4px;">Current Zone</label>
+          <select id="newRobotZone" class="form-input" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text);">
+            <option value="General">General</option>
+            <option value="Medical">Medical</option>
+            <option value="Fragile">Fragile</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Perishable">Perishable</option>
+            <option value="Heavy">Heavy</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:24px;">
+        <button class="btn btn-primary" style="flex:1" onclick="submitNewRobot()">Add Robot</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      place-items: center;
+    }
+    .modal-overlay.open {
+      display: grid;
+    }
+  </style>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        startSimulationStream();
+        fetchRobotFleet();
+    });
+
+    async function fetchRobotFleet() {
+        try {
+            const res = await apiFetch("/robots");
+            const robots = await res.json();
+            const body = document.getElementById("robotFleetBody");
+            
+            // Determine if simulation is active (any robot not idle)
+            const isSimulationRunning = robots.some(r => r.status !== 'idle');
+            const addBtn = document.getElementById("addRobotBtn");
+            if (addBtn) {
+                addBtn.disabled = isSimulationRunning;
+                addBtn.style.opacity = isSimulationRunning ? "0.5" : "1";
+                addBtn.title = isSimulationRunning ? "Cannot add robots while simulation is active" : "Add New Robot";
+            }
+
+            if (!body) return;
+            if (robots.length === 0) {
+                body.innerHTML = `<div style="padding:40px; text-align:center; color:var(--muted);">No robots deployed.</div>`;
+                return;
+            }
+            body.innerHTML = robots.map(r => `
+                <div class="table-row">
+                    <div style="font-weight:700; color:var(--primary);">${r.id}</div>
+                    <div>
+                      <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(255,255,255,0.05);">
+                        ${r.type || 'Standard'}
+                      </span>
+                    </div>
+                    <div>
+                        <div style="height:4px; background:rgba(255,255,255,0.1); border-radius:2px; width:60px; margin-top:4px; overflow:hidden;">
+                            <div style="height:100%; background:${r.battery < 30 ? 'var(--danger)' : 'var(--success)'}; width:${r.battery}%; border-radius:2px;"></div>
+                        </div>
+                        <div style="font-size:10px; color:var(--muted); margin-top:4px;">${r.battery}%</div>
+                    </div>
+                    <div><span class="badge ${(r.status || 'idle') === 'idle' ? 'received-at-hub' : 'out-for-delivery'}">${(r.status || 'idle').replace(/_/g, ' ')}</span></div>
+                    <div><span style="color:var(--muted); font-size:13px;">${r.zone || 'Dock'}</span></div>
+                    <div style="display:flex; gap:8px; justify-content: flex-end;">
+                      <button class="btn-action btn-edit" 
+                        onclick="openEditRobot('${r.id}', '${r.type || 'Standard'}')" 
+                        ${isSimulationRunning ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Simulation active"' : ''}>Edit</button>
+                      <button class="btn-action btn-remove" 
+                        onclick="removeRobot('${r.id}')"
+                        ${isSimulationRunning ? 'disabled style="opacity:0.5; cursor:not-allowed;" title="Simulation active"' : ''}>Remove</button>
+                    </div>
+                </div>
+            `).join("");
+        } catch (e) { console.error(e); }
+    }
+
+    function showAddRobotModal() {
+        document.getElementById('addRobotModal').classList.add('open');
+    }
+
+    function closeAddRobotModal() {
+        document.getElementById('addRobotModal').classList.remove('open');
+    }
+
+    async function submitNewRobot() {
+        const id = document.getElementById('newRobotId').value;
+        const status = document.getElementById('newRobotStatus').value;
+        const zone = document.getElementById('newRobotZone').value;
+        
+        if (!id) return alert("Robot ID is required");
+
+        const payload = { id, status, zone, type: "Standard" }; // Default type
+        
+        const res = await apiFetch("/api/robots/add", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        
+        if (res.ok) {
+            closeAddRobotModal();
+            fetchRobotFleet();
+            // Refresh twin if available
+            if (window.initTwin) initTwin();
+        } else {
+            const data = await res.json();
+            alert("Error: " + (data.error || "Failed to deploy robot"));
+        }
+    }
+
+    function openEditRobot(id, currentType) {
+        const newType = prompt(`Enter new type for Robot ${id} (Standard/Fast/Heavy):`, currentType || "Standard");
+        if (!newType || newType === currentType) return;
+        
+        submitRobotEdit(id, newType);
+    }
+
+    async function submitRobotEdit(id, type) {
+        const res = await apiFetch("/api/robots/update", {
+            method: "POST",
+            body: JSON.stringify({ id, type })
+        });
+        if (res.ok) {
+            alert("Robot updated successfully");
+            fetchRobotFleet();
+        } else {
+            const data = await res.json();
+            alert("Error: " + (data.error || "Failed to update robot"));
+        }
+    }
+
+    async function removeRobot(id) {
+        if (!confirm(`Are you sure you want to remove robot ${id}?`)) return;
+        const res = await apiFetch("/api/robots/remove", {
+            method: "POST",
+            body: JSON.stringify({ id })
+        });
+        if (res.ok) {
+            alert("Robot removed");
+            fetchRobotFleet();
+        } else {
+            const data = await res.json();
+            alert("Error: " + (data.error || "Failed to remove robot"));
+        }
+    }
+  </script>
+</body>
+</html>

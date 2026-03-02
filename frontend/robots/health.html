@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robot Health · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Robotics Supervisor</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Robotics Dashboard</a>
+        <a class="sidebar-link" href="fleet.html">Robots in Hub</a>
+        <a class="sidebar-link" href="twin.html">Digital Twin View</a>
+        <a class="sidebar-link" href="assignment.html">Robot Assignment</a>
+        <a class="sidebar-link active" href="health.html">Health & Maintenance</a>
+        <a class="sidebar-link" href="transport.html">Zone Transport Status</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Robot Health & Telemetry</h1>
+        <p>Battery levels, temperature, and maintenance scheduling</p>
+      </header>
+
+      <section class="content-section">
+        <div class="panel">
+          <div class="table">
+            <div class="table-row table-head">
+              <div>Robot ID</div><div>Battery</div><div>Temperature</div><div>Status</div>
+            </div>
+            <div id="rbHealthTable" class="table-body">
+              <!-- Content loaded via script -->
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel-grid" style="margin-top:24px;">
+          <div class="panel">
+            <div class="panel-title">Average Fleet Temperature</div>
+            <canvas id="rbTempChart"></canvas>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Battery Distribution</div>
+            <canvas id="rbBatteryChart"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        
+        let tempChart = null;
+        let batteryChart = null;
+
+        const updateHealth = () => {
+            apiFetch("/api/robotics/robots").then(r=>r.json()).then(data => {
+                const body = document.getElementById("rbHealthTable");
+                if (body) {
+                    body.innerHTML = data.robots.map(r => `
+                        <div class="table-row">
+                            <div style="font-weight:700;">${r.id}</div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:60px; height:6px; background:rgba(255,255,255,0.05); border-radius:3px;">
+                                    <div style="width:${r.battery}%; height:100%; background:${r.battery < 20 ? 'var(--danger)' : 'var(--success)'}; border-radius:3px;"></div>
+                                </div>
+                                <span style="font-size:11px;">${r.battery}%</span>
+                            </div>
+                            <div>${r.temp}°C</div>
+                            <div><span class="badge ${r.status === 'idle' ? 'received-at-hub' : (r.status === 'charging' ? 'minor-damage' : 'in-zone')}">${r.status.toUpperCase()}</span></div>
+                        </div>
+                    `).join("");
+                }
+
+                // Update Charts
+                const labels = data.robots.map(r => r.id);
+                const temps = data.robots.map(r => r.temp);
+                const batteries = data.robots.map(r => r.battery);
+
+                if (!tempChart) {
+                    tempChart = new Chart(document.getElementById("rbTempChart").getContext("2d"), {
+                        type: 'line',
+                        data: { labels, datasets: [{ label: 'Temperature (°C)', data: temps, borderColor: '#ff6b6b', fill: false }] },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                } else {
+                    tempChart.data.labels = labels;
+                    tempChart.data.datasets[0].data = temps;
+                    tempChart.update('none');
+                }
+
+                if (!batteryChart) {
+                    batteryChart = new Chart(document.getElementById("rbBatteryChart").getContext("2d"), {
+                        type: 'bar',
+                        data: { labels, datasets: [{ label: 'Battery (%)', data: batteries, backgroundColor: '#33d17a' }] },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                } else {
+                    batteryChart.data.labels = labels;
+                    batteryChart.data.datasets[0].data = batteries;
+                    batteryChart.update('none');
+                }
+            });
+        };
+
+        updateHealth();
+        setInterval(updateHealth, 5000);
+    });
+  </script>
+</body>
+</html>

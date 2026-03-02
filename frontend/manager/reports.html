@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>System Reports · Smart Logistics Hub</title>
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">SL</div>
+        <div>
+          <div class="sidebar-title">Smart Logistics Hub</div>
+          <div class="sidebar-sub">Hub Manager</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="dashboard.html">Overview Dashboard</a>
+        <a class="sidebar-link" href="forecast.html">Forecast & AI Insights</a>
+        <a class="sidebar-link" href="intake.html">Receiving Station</a>
+        <a class="sidebar-link" href="flow.html">Live Hub Flow</a>
+        <a class="sidebar-link" href="notifications.html">Notifications</a>
+        <a class="sidebar-link" href="delivery.html">Delivery Overview</a>
+        <a class="sidebar-link active" href="reports.html">System Reports</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="btn btn-secondary" style="width:100%; border-color: rgba(255,255,255,0.1);">Logout</button>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <header class="main-header">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h1>Operational Reports</h1>
+            <p>Export and analyze historical performance data</p>
+          </div>
+          <button id="anDownloadCsvHeader" class="btn btn-primary">Export CSV</button>
+        </div>
+      </header>
+
+      <section class="content-section">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-title">Historical Manifest Batches</div>
+            <div class="table">
+              <div class="table-row table-head">
+                <div>Batch ID</div><div>Total Parcels</div><div>Action</div>
+              </div>
+              <div id="batchHistoryBody" class="table-body">
+                <!-- Loaded via JS -->
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Quick Export</div>
+            <div style="padding:20px; text-align:center;">
+              <p style="color:var(--muted); margin-bottom:20px;">Download the master report for all current operational data.</p>
+              <button id="anDownloadCsvMain" class="btn btn-primary" style="padding:16px 32px; font-weight:700;">Download Master CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:24px;">
+          <div class="panel-title">Master Data Table (Recent Parcels)</div>
+          <div class="table">
+            <div class="table-row table-head">
+              <div>ID</div><div>Priority</div><div>Zone</div><div>Status</div><div>Created</div>
+            </div>
+            <div id="anTableBody" class="table-body"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        
+        // Load Batch History
+        apiFetch("/api/batches").then(r=>r.json()).then(data => {
+            const body = document.getElementById("batchHistoryBody");
+            if (body && data.batches) {
+                body.innerHTML = data.batches.map(b => `
+                    <div class="table-row">
+                        <div style="font-family:monospace; font-size:12px;">${b.id}</div>
+                        <div>${b.total_parcels}</div>
+                        <div><a href="${API_URL}/api/reports/export?batch_id=${b.id}&access_token=${accessToken}" class="btn btn-secondary" style="padding:4px 12px; font-size:11px;">CSV</a></div>
+                    </div>
+                `).join("");
+            }
+        });
+
+        // Load Master Table
+        apiFetch("/parcels").then(r=>r.json()).then(data => {
+            const body = document.getElementById("anTableBody");
+            const parcels = Array.isArray(data) ? data : (data.parcels || []);
+            if (body) {
+                body.innerHTML = parcels.slice(0, 50).map(p => `
+                    <div class="table-row">
+                        <div>${p.id}</div><div>${p.priority}</div><div>${p.zone}</div><div>${p.status}</div><div>${p.created_at}</div>
+                    </div>
+                `).join("");
+            }
+        });
+
+        // Master Download
+        const downloadMaster = () => {
+            window.location.href = `${API_URL}/api/reports/export?access_token=${accessToken}`;
+        };
+        const btnHeader = document.getElementById("anDownloadCsvHeader");
+        if (btnHeader) btnHeader.onclick = downloadMaster;
+        const btnMain = document.getElementById("anDownloadCsvMain");
+        if (btnMain) btnMain.onclick = downloadMaster;
+    });
+  </script>
+</body>
+</html>
