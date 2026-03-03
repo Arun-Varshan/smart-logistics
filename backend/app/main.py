@@ -31,6 +31,10 @@ def create_app() -> FastAPI:
     app.include_router(stream_routes.router)
     app.include_router(debug_routes.router)
 
+    @app.get("/")   # ✅ MOVE THIS HERE
+    def root():
+        return {"status": "ok", "service": "smart-backend"}
+
     @app.on_event("startup")
     def _startup() -> None:
         start_simulator_thread()
