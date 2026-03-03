@@ -2,8 +2,7 @@
 console.log("Smart Logistics ERP: Script v1.0.6 loading...");
 
 // DEPLOYMENT: Replace the empty string below with your Render Backend URL (e.g., "https://my-app.onrender.com")
-const DEPLOYED_BACKEND_URL = "https://your-backend-url-here.onrender.com"; 
-
+const DEPLOYED_BACKEND_URL = "https://smart-backend-lq6d.onrender.com";
 // Automatically sync with the backend port 5000 on the same host for local dev
 const API_URL = window.API_URL || (
     (location.hostname === "localhost" || location.hostname === "127.0.0.1")
