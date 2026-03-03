@@ -414,8 +414,9 @@ def ensure_role_users():
             })
 
 
-ensure_default_admin()
-ensure_role_users()
+# ensure_default_admin()  <-- Moved to start_background_workers
+# ensure_role_users()     <-- Moved to start_background_workers
+
 try:
     from .simulator.qos import gen_qos_records, summarize_qos
 except Exception:
@@ -1966,6 +1967,13 @@ def start_background_workers():
     try:
         db.init_db()
         print(f"Database initialized ({db.get_active_db_type()})")
+        # Ensure default users exist (after DB init)
+        try:
+            ensure_default_admin()
+            ensure_role_users()
+            print("Default users verified/seeded.")
+        except Exception as e:
+            print(f"User seeding warning: {e}")
     except Exception as e:
         print(f"DB init warning: {e}")
 

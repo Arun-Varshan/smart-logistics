@@ -213,7 +213,38 @@ def _init_postgres():
         conn.close()
 
 def _seed_users(cur, is_pg=False):
-    pass # Users are seeded in backend.py ensure_role_users
+    # Default Users for the system (Role-Based)
+    # Password logic should match verify_password in backend.py (SHA256 of plain text for demo)
+    import hashlib
+    def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
+
+    users = [
+        ("U-ADMIN", "admin@wiztric.com", hash_pw("admin123"), "ADMIN"),
+        ("U-MANAGER", "manager@wiztric.com", hash_pw("manager123"), "HUB_MANAGER"),
+        ("U-QOS", "qos@wiztric.com", hash_pw("qos123"), "QOS"),
+        ("U-ROBOTS", "robots@wiztric.com", hash_pw("robots123"), "ROBOTICS"),
+        ("U-DELIVERY", "delivery@wiztric.com", hash_pw("delivery123"), "DELIVERY"),
+        ("U-FINANCE", "finance@wiztric.com", hash_pw("finance123"), "FINANCE")
+    ]
+    
+    ts = datetime.utcnow().isoformat()
+    cid = COMPANY_ID
+    
+    for uid, email, pwhash, role in users:
+        try:
+            if is_pg:
+                cur.execute("""
+                    INSERT INTO users (id, company_id, email, password_hash, role, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (email) DO NOTHING
+                """, (uid, cid, email, pwhash, role, ts))
+            else:
+                cur.execute("""
+                    INSERT OR IGNORE INTO users (id, company_id, email, password_hash, role, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (uid, cid, email, pwhash, role, ts))
+        except Exception as e:
+            print(f"Error seeding user {email}: {e}")
 
 # --- ROBOT HELPERS ---
 
