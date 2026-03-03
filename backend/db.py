@@ -219,12 +219,12 @@ def _seed_users(cur, is_pg=False):
     def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
 
     users = [
-        ("U-ADMIN", "admin@wiztric.com", hash_pw("admin123"), "ADMIN"),
-        ("U-MANAGER", "manager@wiztric.com", hash_pw("manager123"), "HUB_MANAGER"),
-        ("U-QOS", "qos@wiztric.com", hash_pw("qos123"), "QOS"),
-        ("U-ROBOTS", "robots@wiztric.com", hash_pw("robots123"), "ROBOTICS"),
-        ("U-DELIVERY", "delivery@wiztric.com", hash_pw("delivery123"), "DELIVERY"),
-        ("U-FINANCE", "finance@wiztric.com", hash_pw("finance123"), "FINANCE")
+        ("U-ADMIN", "logistics@gmail.com", hash_pw("admin123"), "ADMIN"),
+        ("U-MANAGER", "logistics@gmail.com", hash_pw("admin123"), "HUB_MANAGER"),
+        ("U-QOS", "logistics@gmail.com", hash_pw("admin123"), "QOS"),
+        ("U-ROBOTS", "logistics@gmail.com", hash_pw("admin123"), "ROBOTICS"),
+        ("U-DELIVERY", "logistics@gmail.com", hash_pw("admin123"), "DELIVERY"),
+        ("U-FINANCE", "logistics@gmail.com", hash_pw("admin123"), "FINANCE")
     ]
     
     ts = datetime.utcnow().isoformat()

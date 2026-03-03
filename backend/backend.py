@@ -397,21 +397,48 @@ def ensure_role_users():
     users = [
         ("intake@hub.com", "intake123", "intake"),
         ("qos@hub.com", "qos123", "qos"),
-        ("robotics@hub.com", "robot123", "robotics"),
-        ("logistics@hub.com", "log123", "logistics"),
-        ("planning@hub.com", "plan123", "planning"),
-        ("executive@hub.com", "exec123", "admin"),
+    users = [
+        ("logistics@gmail.com", "admin123", "ADMIN"),
+        ("logistics@gmail.com", "admin123", "HUB_MANAGER"),
+        ("logistics@gmail.com", "admin123", "QOS"),
+        ("logistics@gmail.com", "admin123", "ROBOTICS"),
+        ("logistics@gmail.com", "admin123", "DELIVERY"),
+        ("logistics@gmail.com", "admin123", "FINANCE")
     ]
     for email, pwd, role in users:
-        u = db.get_user_by_email(email)
-        if not u:
-            db.upsert_user({
-                "id": f"user-{role}",
-                "company_id": DEFAULT_COMPANY_ID,
-                "email": email,
-                "password_hash": hash_password(pwd),
-                "role": role,
-            })
+        # NOTE: db.upsert_user keys on ID. We need unique IDs for roles if email is same.
+        # But wait, db.upsert_user uses ID as primary key.
+        # If we use same email for multiple roles, get_user_by_email returns ONE record (LIMIT 1).
+        # So we can only have ONE user with this email.
+        # The role of this user should be "ADMIN" to access everything (if we update ensure_role logic)
+        # OR we just update the single user record.
+        
+        # Strategy: Create ONE Super Admin user "logistics@gmail.com" with role "ADMIN".
+        # Backend `ensure_role` checks: if role not in [...allowed], return 403.
+        # We need to make sure "ADMIN" is allowed everywhere.
+        pass
+
+    # Create the ONE Super User
+    db.upsert_user({
+        "id": "user-super-admin",
+        "company_id": DEFAULT_COMPANY_ID,
+        "email": "logistics@gmail.com",
+        "password_hash": hash_password("admin123"),
+        "role": "ADMIN", 
+    })
+
+def ensure_default_admin():
+    pass 
+
+def ensure_role_users():
+    # Only creating the requested super user now
+    db.upsert_user({
+        "id": "user-super-admin",
+        "company_id": DEFAULT_COMPANY_ID,
+        "email": "logistics@gmail.com",
+        "password_hash": hash_password("admin123"),
+        "role": "ADMIN",
+    })
 
 
 # ensure_default_admin()  <-- Moved to start_background_workers
