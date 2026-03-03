@@ -23,6 +23,32 @@ def create_app() -> FastAPI:
     )
 
     init_db()
+    
+    # Auto-seed users if using FastAPI backend
+    try:
+        from .database import SessionLocal
+        from .auth import get_password_hash
+        from .models import User
+        
+        db = SessionLocal()
+        if db.query(User).count() == 0:
+            print("Seeding default users (FastAPI)...")
+            users = [
+                ("admin@wiztric.com", "admin123", "ADMIN"),
+                ("manager@wiztric.com", "manager123", "HUB_MANAGER"),
+                ("qos@wiztric.com", "qos123", "QOS"),
+                ("robots@wiztric.com", "robots123", "ROBOTICS"),
+                ("delivery@wiztric.com", "delivery123", "DELIVERY"),
+                ("finance@wiztric.com", "finance123", "FINANCE")
+            ]
+            for email, pwd, role in users:
+                u = User(email=email, hashed_password=get_password_hash(pwd), role=role, tenant_id=1)
+                db.add(u)
+            db.commit()
+            print("Seeded users.")
+        db.close()
+    except Exception as e:
+        print(f"FastAPI seeding error: {e}")
 
     app.include_router(auth.router)
     app.include_router(hubs.router)

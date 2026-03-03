@@ -754,15 +754,25 @@ def run_forecast_logic():
 
 @app.route("/auth/login", methods=["POST"])
 def login():
-    body = request.get_json(silent=True) or {}
+    # Support both JSON and Form Data (for robust login)
+    body = request.get_json(silent=True) or request.form or {}
     email = (body.get("email") or body.get("username") or "").strip().lower()
     password = body.get("password") or ""
+    
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
 
     user = db.get_user_by_email(email)
     if not user or not verify_password(password, user.get("password_hash") or ""):
-        return jsonify({"error": "Invalid credentials"}), 401
+        # Fallback: Check for old 'admin@wiztric.demo' if 'admin@wiztric.com' fails
+        if email == "admin@wiztric.com":
+             fallback = db.get_user_by_email("admin@wiztric.demo")
+             if fallback and verify_password(password, fallback.get("password_hash") or ""):
+                 user = fallback
+             else:
+                 return jsonify({"error": "Invalid credentials"}), 401
+        else:
+             return jsonify({"error": "Invalid credentials"}), 401
 
     role = user.get("role") or "GUEST"
     token = create_access_token(user_id=user["id"], role=role)
