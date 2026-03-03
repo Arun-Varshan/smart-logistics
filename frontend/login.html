@@ -48,40 +48,75 @@
       
       try {
         if (typeof API_URL === 'undefined') {
-            throw new ReferenceError("API_URL is not defined. Please ensure script.js loaded correctly and try a hard refresh (Ctrl+F5).");
+            throw new ReferenceError("API_URL is not defined.");
         }
+        
         console.log("Attempting login at:", `${API_URL}/auth/login`);
+        
+        // Use URLSearchParams for application/x-www-form-urlencoded
+        const formData = new URLSearchParams();
+        formData.append('username', email); // FastAPI OAuth2 expects 'username'
+        formData.append('password', password);
+
         const res = await fetch(`${API_URL}/auth/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData
         });
+        
         const data = await res.json();
         
         if (!res.ok) {
           console.error("Login rejected by server:", data);
-          errorEl.textContent = data.error || "Login failed";
+          errorEl.textContent = data.detail || "Login failed"; // FastAPI uses 'detail'
           return;
         }
         
-        localStorage.setItem('wiztric_access_token', data.access_token);
-        localStorage.setItem('wiztric_role', data.role);
-        localStorage.setItem('wiztric_tenant_id', data.tenant_id);
+        // Use token directly if backend returns it at root level (FastAPI OAuth2 standard)
+        // Adjust based on your actual backend response structure
+        const token = data.access_token || data.token;
+        if (!token) {
+             throw new Error("No access token received");
+        }
         
-        // Resolve redirect path based on role
-        const role_paths = {
-            "HUB_MANAGER": "/manager/dashboard.html",
-            "QOS": "/qos/dashboard.html",
-            "ROBOTICS": "/robots/dashboard.html",
-            "DELIVERY": "/delivery/dashboard.html",
-            "ADMIN": "/admin/dashboard.html",
-            "FINANCE": "/finance/dashboard.html"
-        };
-        const redirect = role_paths[data.role] || "/index.html";
-        window.location.href = redirect;
+        localStorage.setItem('wiztric_access_token', token);
+        
+        // Decode token to get role/tenant if not in response body
+        // Simple JWT decode (payload is 2nd part)
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            localStorage.setItem('wiztric_role', payload.role || data.role);
+            localStorage.setItem('wiztric_tenant_id', payload.tenant_id || data.tenant_id);
+            
+            // Resolve redirect path based on role
+            const userRole = (payload.role || data.role || "").toUpperCase();
+            const role_paths = {
+                "HUB_MANAGER": "/manager/dashboard.html",
+                "QOS": "/qos/dashboard.html",
+                "ROBOTICS": "/robots/dashboard.html",
+                "DELIVERY": "/delivery/dashboard.html",
+                "ADMIN": "/admin/dashboard.html",
+                "FINANCE": "/finance/dashboard.html"
+            };
+            
+            // Allow case-insensitive matching
+            let redirect = "/index.html";
+            for (const [key, path] of Object.entries(role_paths)) {
+                if (key === userRole) {
+                    redirect = path;
+                    break;
+                }
+            }
+            window.location.href = redirect;
+            
+        } catch (e) {
+            console.error("Token parse error", e);
+            window.location.href = "/index.html";
+        }
+
       } catch (e) {
         console.error("Fetch error details:", e);
-        errorEl.textContent = "Connection error. Is the backend running? Check console (F12) for details.";
+        errorEl.textContent = "Connection error. Is the backend running?";
       }
     };
   </script>
